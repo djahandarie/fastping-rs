@@ -10,6 +10,7 @@ use std::collections::BTreeMap;
 use std::net::IpAddr;
 use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, Mutex, RwLock};
+use std::thread;
 use std::time::{Duration, Instant};
 use PingResult;
 
@@ -108,7 +109,13 @@ pub fn send_pings(
     max_rtt: Arc<Duration>,
 ) {
     loop {
+        let mut i = 0;
         for (addr, ping) in targets.lock().unwrap().iter_mut() {
+            if i == 10 {
+                i = 0;
+                thread::sleep(Duration::from_millis(10));
+            }
+            i += 1;
             match if addr.is_ipv4() {
                 send_echo(&mut tx.lock().unwrap(), ping, size)
             } else if addr.is_ipv6() {
